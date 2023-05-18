@@ -94,7 +94,7 @@ public class SyntaxAnalyzer {
 
 
 
-    //<Program> --> <TopLevelForm> <Program>
+    //<Program> --> Epsilon | <TopLevelForm> <Program>
     public static void Program() throws IOException {
 
 
@@ -117,6 +117,66 @@ public class SyntaxAnalyzer {
 
     }
 
+
+    //<ArgList> --> Epsilon | IDENTIFIER <ArgList>
+    public static void ArgList() throws IOException {
+
+        if(currentToken == Terminal.IDENTIFIER) {
+            lex();
+            ArgList();
+        }
+
+        //Else, do nothing. That means epsilon.
+    }
+
+
+
+    // <Expressions> --> Epsilon | <Expression> <Expressions>
+    public static void Expressions(){
+
+        if(currentToken == Terminal.IDENTIFIER || currentToken == Terminal.NUMBER || currentToken == Terminal.CHAR ||
+                currentToken == Terminal.BOOLEAN || currentToken == Terminal.STRING || currentToken == Terminal.LEFTPAR){
+            Expression();
+            Expressions();
+        }
+
+    }
+
+
+
+
+    //<VarDef> --> Epsilon | <VarDefs>
+    public static void VarDef(){
+        if(currentToken == Terminal.LEFTPAR)
+            VarDefs();
+    }
+
+
+    //<CondBranch> --> Epsilon | ( <Expression> <Statements> )
+    public static void CondBranch() throws IOException {
+
+        if(currentToken == Terminal.LEFTPAR){
+            lex();
+            Expressions();
+            Statements();
+
+            if(currentToken == Terminal.RIGHTPAR)
+                lex();
+            else
+                error(Terminal.RIGHTPAR); //Give an error like: ')' is expected.
+        }
+
+    }
+
+
+    //<EndExpression> --> Epsilon | <Expression>
+    public static void EndExpression(){
+
+        if(currentToken == Terminal.IDENTIFIER || currentToken == Terminal.NUMBER || currentToken == Terminal.CHAR ||
+                currentToken == Terminal.BOOLEAN || currentToken == Terminal.STRING || currentToken == Terminal.LEFTPAR) {
+            Expression();
+        }
+    }
 
 
 }
