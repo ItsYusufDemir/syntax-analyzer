@@ -33,17 +33,28 @@ public class SyntaxAnalyzer {
 
     //GLOBAL VARIABLES
     private static String INPUT_FILE_PATH = "output.txt"; //Our input file is the output of LexicalAnalyzer
+    private static String LEXEME_FILE_PATH = "lexemes.txt"; //Our lexemes file is the output of LexicalAnalyzer
     private static final String OUTPUT_FILE_PATH = "parse_tree.txt"; //Our ouput file will be the parse tree of the code
     private static FileReader F;
+    private static FileReader F2;
     private static BufferedReader bufferedReader;
+    private static BufferedReader bufferedReader2;
     private static Terminal currentToken;
+    private static String currentLexeme; //It keeps the current lexeme
     private static String location;
+    private static int depthLevel = 0;
+
+
+
+
 
 
     public static void main(String args[]) throws IOException {
 
         LexicalAnalyzer.main(null); //We call the LexicalAnaylzer that we have written in previous project
 
+
+        //Opening Files
         try {
             F = new FileReader(INPUT_FILE_PATH);  //reading file by using FileReader;
         }
@@ -52,10 +63,21 @@ public class SyntaxAnalyzer {
             System.exit(0);
         }
 
+        try {
+            F2 = new FileReader(INPUT_FILE_PATH);  //reading file by using FileReader;
+        }
+        catch (FileNotFoundException e){
+            System.out.println("Lexeme file couldn't opened!");
+            System.exit(0);
+        }
+
 
         bufferedReader = new BufferedReader(F);
-        lex(); //We take the first token
+        bufferedReader2 = new BufferedReader(F2);
 
+
+        lex(); //We take the first token
+        printNonterminal("<Program>"); //Printing the beginning of the tree
         Program(); //We start analyzing the syntax
 
     }
@@ -63,9 +85,10 @@ public class SyntaxAnalyzer {
 
 
 
-    //This function reads the next token in the output file of LexicalAnaylzer
+    //This function reads the next token in the output file of LexicalAnalyzer
     public static void lex() throws IOException {
         String line = bufferedReader.readLine();
+        currentLexeme = bufferedReader2.readLine();
 
         try {
             currentToken = Terminal.valueOf(line.substring(0, line.indexOf(' ')));
@@ -96,15 +119,20 @@ public class SyntaxAnalyzer {
 
     //<Program> --> Epsilon | <TopLevelForm> <Program>
     public static void Program() throws IOException {
-
+        depthLevel++;
 
         if(currentToken == Terminal.LEFTPAR){
             lex();
+            printNonterminal("<TopLevelForm>");
             TopLevelForm();
+            printNonterminal("<Program>");
             Program();
         }
+        else{ //Else, do nothing. That means epsilon.
+            printNonterminal("_"); //Print underscore to show epsilon
+        }
 
-        //Else, do nothing. That means epsilon.
+        depthLevel--;
     }
 
 
@@ -295,6 +323,24 @@ public class SyntaxAnalyzer {
         } else {
             error(Terminal.BEGIN);
         }
+    }
+
+
+    public static void printNonterminal(String nonterminal){
+
+        for(int i = 0; i < depthLevel; i++) //Put appropriate number of tabs for current depthLevel
+            System.out.print("\t");
+
+        System.out.println(nonterminal);
+    }
+
+
+    public static void printTerminal(Terminal terminal, String lexeme){
+
+        for(int i = 0; i < depthLevel; i++) //Put appropriate number of tabs for current depthLevel
+            System.out.print("\t");
+
+        System.out.println(terminal.toString() + "( " + lexeme + " )");
     }
 
 }
