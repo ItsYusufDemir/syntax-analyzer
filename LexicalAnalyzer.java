@@ -25,12 +25,20 @@ public class LexicalAnalyzer {
     static int column = 0; //keeps column index of the token
     static int tokenStartingColumn = 0;  //keeps starting column index of the token
     static FileReader F;
-
     static FileWriter file; //defining global variable file that keeps the output
+    static FileWriter file2; //defining global variable file that keeps the lexemes as output
 
     static {
         try {  //try-catch block for catching file is not found error
             file = new FileWriter("output.txt");
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    static {
+        try {  //try-catch block for catching file is not found error
+            file2 = new FileWriter("lexemes.txt");
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
@@ -417,6 +425,7 @@ public class LexicalAnalyzer {
 
         F.close();
         file.close();
+        file2.close();
     }
 
 
@@ -502,7 +511,7 @@ public class LexicalAnalyzer {
             file.write(token + " " + line + ":" + tokenStartingColumn + "\n");
         }
 
-        //System.out.println(currentLexeme);
+        file2.write(currentLexeme + "\n"); //Writing the current lexeme
     }
 
 
