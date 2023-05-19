@@ -139,12 +139,78 @@ public class SyntaxAnalyzer {
 
 
     //<TopLevelForm> --> ( <SecondLevelForm> )
-    public static void TopLevelForm(){
-
-
-
+    public static void TopLevelForm() throws IOException {
+               if(currentToken == Terminal.LEFTPAR) {
+                   lex();
+                   SecondLevelForm();
+                   if (currentToken == Terminal.RIGHTPAR) {
+                       lex();
+                   } else {
+                       error(Terminal.RIGHTPAR);
+                   }
+               }
+               else{
+                 error(Terminal.LEFTPAR);
+    }
     }
 
+
+    //<SecondLevelForm> --> <Definition> | ( <FunCall> )
+    public static void SecondLevelForm() throws IOException {
+        if(currentToken == Terminal.DEFINE){
+            Definition();
+        }
+        else if(currentToken == Terminal.LEFTPAR) {
+            lex();
+            FunCall();
+            if (currentToken == Terminal.RIGHTPAR) {
+                lex();
+            } else {
+                error(Terminal.RIGHTPAR);
+            }
+        }
+            else{
+                error(Terminal.LEFTPAR);
+            }
+        }
+
+    //<Definition> --> DEFINE <DefinitionRight>
+    public static void Definition() throws IOException {
+          if(currentToken == Terminal.DEFINE){
+              lex();
+              DefinitionRight();
+          }
+          else{
+              error(Terminal.DEFINE);
+          }
+    }
+
+    //<DefinitionRight> --> IDENTIFIER <Expression> | ( IDENTIFIER <ArgList> ) <Statements>
+    public static void DefinitionRight() throws IOException {
+          if(currentToken == Terminal.IDENTIFIER){
+              lex();
+              Expression();
+          }
+          else if(currentToken == Terminal.LEFTPAR) {
+              lex();
+              if (currentToken == Terminal.IDENTIFIER) {
+                  lex();
+                  ArgList();
+                  if (currentToken == Terminal.RIGHTPAR) {
+                      lex();
+                      Statements();
+                  } else {
+                      error(Terminal.RIGHTPAR);
+                  }
+
+              } else {
+                  error(Terminal.IDENTIFIER);
+              }
+          }
+              else {
+                  error(Terminal.IDENTIFIER);
+              }
+          }
 
     //<ArgList> --> Epsilon | IDENTIFIER <ArgList>
     public static void ArgList() throws IOException {
@@ -157,10 +223,21 @@ public class SyntaxAnalyzer {
         //Else, do nothing. That means epsilon.
     }
 
+    //<Statements> --> <Expression> | <Definition> <Statements>
+    public static void Statements() throws IOException {
+         if(currentToken == Terminal.IDENTIFIER || currentToken == Terminal.NUMBER || currentToken == Terminal.CHAR || currentToken == Terminal.BOOLEAN || currentToken == Terminal.STRING || currentToken == Terminal.LEFTPAR){
+             Expression();
+         }
+         else if(currentToken == Terminal.DEFINE){
+             Definition();
+             lex();
+             Statements();
+         }
+    }
 
 
     // <Expressions> --> Epsilon | <Expression> <Expressions>
-    public static void Expressions(){
+    public static void Expressions() throws IOException {
 
         if(currentToken == Terminal.IDENTIFIER || currentToken == Terminal.NUMBER || currentToken == Terminal.CHAR ||
                 currentToken == Terminal.BOOLEAN || currentToken == Terminal.STRING || currentToken == Terminal.LEFTPAR){
@@ -170,11 +247,44 @@ public class SyntaxAnalyzer {
 
     }
 
+    //<Expression> --> IDENTIFIER | NUMBER | CHAR | BOOLEAN | STRING | ( <Expr> )
+    public static void Expression() throws IOException {
 
+        if(currentToken == Terminal.IDENTIFIER | currentToken == Terminal.NUMBER | currentToken == Terminal.CHAR | currentToken ==  Terminal.BOOLEAN | currentToken == Terminal.STRING){
+            lex();
 
+        } else if (currentToken == Terminal.LEFTPAR) {
+            lex();
+            Expr();
+            if(currentToken == Terminal.RIGHTPAR){
+                lex();
+            }
+            else{
+                error(Terminal.RIGHTPAR);
+            }
+        }
+        else{
+            error(Terminal.IDENTIFIER);
+        }
+
+    }
+//<Expr> --> <LetExpression> | <CondExpression> | <IfExpression> | <BeginExpression> | <FunCall>
+    public static void Expr() throws IOException {
+        if (currentToken == Terminal.LET) {
+            LetExpression();
+        } else if (currentToken == Terminal.COND) {
+            CondExpression();
+        } else if (currentToken == Terminal.IF) {
+            IfExpression();
+        } else if (currentToken == Terminal.BEGIN) {
+            BeginExpression();
+        } else if (currentToken == Terminal.IDENTIFIER) {
+            FunCall();
+        }
+    }
 
     //<VarDef> --> Epsilon | <VarDefs>
-    public static void VarDef(){
+    public static void VarDef() throws IOException {
         if(currentToken == Terminal.LEFTPAR)
             VarDefs();
     }
@@ -198,7 +308,7 @@ public class SyntaxAnalyzer {
 
 
     //<EndExpression> --> Epsilon | <Expression>
-    public static void EndExpression(){
+    public static void EndExpression() throws IOException {
 
         if(currentToken == Terminal.IDENTIFIER || currentToken == Terminal.NUMBER || currentToken == Terminal.CHAR ||
                 currentToken == Terminal.BOOLEAN || currentToken == Terminal.STRING || currentToken == Terminal.LEFTPAR) {
