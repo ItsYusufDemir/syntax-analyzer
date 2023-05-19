@@ -178,5 +178,124 @@ public class SyntaxAnalyzer {
         }
     }
 
+    //<FunCall> --> IDENTIFIER <Expression>
+    public static void FunCall() throws IOException {
+
+        if(currentToken == Terminal.IDENTIFIER) {
+            lex();
+            Expressions();
+        } else {
+            error(Terminal.IDENTIFIER);
+        }
+    }
+
+    //<LetExpression> --> LET <LetExpr>
+    public static void LetExpression() throws IOException {
+
+        if(currentToken == Terminal.LET) {
+            lex();
+            LetExpr();
+        } else {
+            error(Terminal.LET);
+        }
+    }
+
+    //<LetExpression> --> ( <VarDefs> ) <Statements> | IDENTIFIER ( <VarDefs> ) <Statements>
+    public static void LetExpr() throws IOException {
+        if (currentToken == Terminal.LEFTPAR) {
+            lex();
+            varDefs();
+            if (currentToken == Terminal.RIGHTPAR) {
+                lex();
+            } else {
+                error(Terminal.RIGHTPAR); //Give an error like: ')' is expected.
+            }
+        } else if (currentToken == Terminal.IDENTIFIER) {
+            if (currentToken == Terminal.LEFTPAR) {
+                lex();
+                varDefs();
+                if (currentToken == Terminal.RIGHTPAR) {
+                    lex();
+                } else {
+                    error(Terminal.RIGHTPAR); //Give an error like: ')' is expected.
+                }
+            } else {
+                error(Terminal.LEFTPAR);
+            }
+        }
+    }
+
+    //<VarDefs> -->( IDENTIFIER <Expression> ) <VarDef>
+    public static void VarDefs() throws IOException {
+        if(currentToken == Terminal.LEFTPAR) {
+            lex();
+            if(currentToken == Terminal.IDENTIFIER) {
+                lex();
+                Expressions();
+                if(currentToken == Terminal.RIGHTPAR) {
+                    lex();
+                    VarDef();
+                } else {
+                    error(Terminal.RIGHTPAR);
+                }
+            } else {
+                error(Terminal.IDENTIFIER);
+            }
+        } else {
+            error(Terminal.LEFTPAR);
+        }
+    }
+
+    //<CondExpression> --> COND <CondBranches>
+    public static void CondExpression() throws IOException {
+        if(currentToken == Terminal.COND) {
+            lex();
+            CondBranches();
+        } else {
+            error(Terminal.COND);
+        }
+    }
+
+    //<CondBranches> --> ( <Expression> <Statements> ) <CondBranches>
+    public static void CondBranches() throws IOException {
+        if(currentToken == Terminal.LEFTPAR) {
+            lex();
+            Expressions();
+            lex();
+            Statements();
+            if(currentToken == Terminal.RIGHTPAR) {
+                lex();
+                CondBranches();
+            } else {
+                error(Terminal.RIGHTPAR);
+            }
+        } else {
+            error(Terminal.LEFTPAR);
+        }
+    }
+
+    //<IfExpression> --> IF <Expression> <Expression> <EndExpression>
+    public static void IfExpression() throws IOException {
+        if(currentToken == Terminal.IF) {
+            lex();
+            Expressions();
+            lex();
+            Expressions();
+            lex();
+            EndExpression();
+        } else {
+            error(Terminal.IF);
+        }
+    }
+
+    //<BeginExpression> --> BEGIN <Statements>
+    public static void BeginExpression() throws IOException {
+        if(currentToken == Terminal.BEGIN) {
+            lex();
+            Statements();
+        } else {
+            error(Terminal.BEGIN);
+        }
+    }
 
 }
