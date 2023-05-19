@@ -222,6 +222,8 @@ public class SyntaxAnalyzer {
             } else {
                 error(Terminal.LEFTPAR);
             }
+        } else {
+            error(Terminal.LEFTPAR);
         }
     }
 
@@ -261,7 +263,6 @@ public class SyntaxAnalyzer {
         if(currentToken == Terminal.LEFTPAR) {
             lex();
             Expressions();
-            lex();
             Statements();
             if(currentToken == Terminal.RIGHTPAR) {
                 lex();
@@ -279,9 +280,7 @@ public class SyntaxAnalyzer {
         if(currentToken == Terminal.IF) {
             lex();
             Expressions();
-            lex();
             Expressions();
-            lex();
             EndExpression();
         } else {
             error(Terminal.IF);
