@@ -67,7 +67,7 @@ public class SyntaxAnalyzer {
         }
 
         try {
-            F2 = new FileReader(INPUT_FILE_PATH);  //reading file by using FileReader;
+            F2 = new FileReader(LEXEME_FILE_PATH);  //reading file by using FileReader;
         }
         catch (FileNotFoundException e){
             System.out.println("Lexeme file couldn't opened!");
@@ -98,8 +98,8 @@ public class SyntaxAnalyzer {
             location = line.substring(line.indexOf(' ') + 1);
         }
         catch (Exception e){ //If the token is different that we defined above, give error.
-            System.out.println("The token: " + line.substring(0, line.indexOf(' ')) + " is not known by this SyntaxAnalyzer!" );
-            System.exit(0);
+            if(line != null)
+                System.out.println("The token: " + line.substring(0, line.indexOf(' ')) + " is not known by this SyntaxAnalyzer!" );
         }
 
     }
@@ -116,6 +116,8 @@ public class SyntaxAnalyzer {
         else
             System.out.println("SYNTAX ERROR [" + location + "]: '" + token.toString() + "' is expected");
 
+
+        System.exit(0);
     }
 
     public static void error(List<Terminal> tokens){
@@ -136,7 +138,7 @@ public class SyntaxAnalyzer {
         }
 
         System.out.println(" is expected");
-
+        System.exit(0);
     }
 
 
@@ -146,14 +148,13 @@ public class SyntaxAnalyzer {
         depthLevel++;
 
         if(currentToken == Terminal.LEFTPAR){
-            lex();
             printNonterminal("<TopLevelForm>");
             TopLevelForm();
             printNonterminal("<Program>");
             Program();
         }
         else{ //Else, do nothing. That means epsilon.
-            printNonterminal("_"); //Print underscore to show epsilon
+            printNonterminal("__"); //Print underscore to show epsilon
         }
 
         depthLevel--;
@@ -164,11 +165,15 @@ public class SyntaxAnalyzer {
 
     //<TopLevelForm> --> ( <SecondLevelForm> )
     public static void TopLevelForm() throws IOException {
+        depthLevel++;
 
         if(currentToken == Terminal.LEFTPAR) {
+            printTerminal(Terminal.LEFTPAR);
             lex();
+            printNonterminal("<SecondLevelForm>");
             SecondLevelForm();
             if (currentToken == Terminal.RIGHTPAR) {
+                printTerminal(Terminal.RIGHTPAR);
                 lex();
             } else {
                 error(Terminal.RIGHTPAR);
@@ -177,18 +182,27 @@ public class SyntaxAnalyzer {
         else{
             error(Terminal.LEFTPAR);
          }
+
+        depthLevel--;
     }
 
 
     //<SecondLevelForm> --> <Definition> | ( <FunCall> )
     public static void SecondLevelForm() throws IOException {
+        depthLevel++;
+
+
         if(currentToken == Terminal.DEFINE){
+            printNonterminal("<Definition>");
             Definition();
         }
         else if(currentToken == Terminal.LEFTPAR) {
+            printTerminal(Terminal.LEFTPAR);
             lex();
+            printNonterminal("<FuncCall>");
             FunCall();
             if (currentToken == Terminal.RIGHTPAR) {
+                printTerminal(Terminal.RIGHTPAR);
                 lex();
             } else {
                 error(Terminal.RIGHTPAR);
@@ -197,32 +211,51 @@ public class SyntaxAnalyzer {
         else{
             error(Arrays.asList(Terminal.DEFINE, Terminal.LEFTPAR));
         }
+
+
+        depthLevel--;
     }
 
     //<Definition> --> DEFINE <DefinitionRight>
     public static void Definition() throws IOException {
+        depthLevel++;
+
           if(currentToken == Terminal.DEFINE){
+              printTerminal(Terminal.DEFINE);
               lex();
+              printNonterminal("<DefinitionRight>");
               DefinitionRight();
           }
           else{
               error(Terminal.DEFINE);
           }
+
+
+          depthLevel--;
     }
 
     //<DefinitionRight> --> IDENTIFIER <Expression> | ( IDENTIFIER <ArgList> ) <Statements>
     public static void DefinitionRight() throws IOException {
+        depthLevel++;
+
           if(currentToken == Terminal.IDENTIFIER){
+              printTerminal(Terminal.IDENTIFIER);
               lex();
+              printNonterminal("<Expression>");
               Expression();
           }
           else if(currentToken == Terminal.LEFTPAR) {
+              printTerminal(Terminal.LEFTPAR);
               lex();
               if (currentToken == Terminal.IDENTIFIER) {
+                  printTerminal(Terminal.IDENTIFIER);
                   lex();
+                  printNonterminal("<ArgList>");
                   ArgList();
                   if (currentToken == Terminal.RIGHTPAR) {
+                      printTerminal(Terminal.RIGHTPAR);
                       lex();
+                      printNonterminal("<Statements>");
                       Statements();
                   } else {
                       error(Terminal.RIGHTPAR);
@@ -235,53 +268,83 @@ public class SyntaxAnalyzer {
           else {
               error( Arrays.asList(Terminal.IDENTIFIER, Terminal.LEFTPAR));
           }
+
+          depthLevel--;
     }
 
     //<ArgList> --> Epsilon | IDENTIFIER <ArgList>
     public static void ArgList() throws IOException {
+        depthLevel++;
 
         if(currentToken == Terminal.IDENTIFIER) {
+            printTerminal(Terminal.IDENTIFIER);
             lex();
+            printNonterminal("<ArgsList>");
             ArgList();
         }
+        else{ //Else, do nothing. That means epsilon
+            printNonterminal("_");
+        }
 
-        //Else, do nothing. That means epsilon.
+        depthLevel--;
     }
 
     //<Statements> --> <Expression> | <Definition> <Statements>
     public static void Statements() throws IOException {
-        if (currentToken == Terminal.IDENTIFIER || currentToken == Terminal.NUMBER || currentToken == Terminal.CHAR || currentToken == Terminal.BOOLEAN || currentToken == Terminal.STRING || currentToken == Terminal.LEFTPAR) {
+        depthLevel++;
+
+        if (currentToken == Terminal.IDENTIFIER || currentToken == Terminal.NUMBER || currentToken == Terminal.CHAR
+                || currentToken == Terminal.BOOLEAN || currentToken == Terminal.STRING || currentToken == Terminal.LEFTPAR) {
+            printNonterminal("<Expression>");
             Expression();
         } else if (currentToken == Terminal.DEFINE) {
+            printNonterminal("<Definition>");
             Definition();
+            printNonterminal("<Statements>");
             Statements();
         } else {
             error(Arrays.asList(Terminal.IDENTIFIER, Terminal.NUMBER, Terminal.CHAR, Terminal.BOOLEAN, Terminal.STRING,
                     Terminal.LEFTPAR, Terminal.DEFINE));
         }
+
+        depthLevel--;
     }
 
 
     // <Expressions> --> Epsilon | <Expression> <Expressions>
     public static void Expressions() throws IOException {
+        depthLevel++;
 
         if(currentToken == Terminal.IDENTIFIER || currentToken == Terminal.NUMBER || currentToken == Terminal.CHAR ||
                 currentToken == Terminal.BOOLEAN || currentToken == Terminal.STRING || currentToken == Terminal.LEFTPAR){
+            printNonterminal("<Expression>");
             Expression();
+            printNonterminal("<Expressions>");
             Expressions();
         }
+        else{
+            printNonterminal("__");
+        }
 
+        depthLevel--;
     }
+
 
     //<Expression> --> IDENTIFIER | NUMBER | CHAR | BOOLEAN | STRING | ( <Expr> )
     public static void Expression() throws IOException {
+        depthLevel++;
 
-        if(currentToken == Terminal.IDENTIFIER | currentToken == Terminal.NUMBER | currentToken == Terminal.CHAR | currentToken ==  Terminal.BOOLEAN | currentToken == Terminal.STRING){
+        if(currentToken == Terminal.IDENTIFIER || currentToken == Terminal.NUMBER || currentToken == Terminal.CHAR ||
+                currentToken ==  Terminal.BOOLEAN || currentToken == Terminal.STRING){
+            printTerminal(currentToken);
             lex();
         } else if (currentToken == Terminal.LEFTPAR) {
+            printTerminal(Terminal.LEFTPAR);
             lex();
+            printNonterminal("<Expr>");
             Expr();
             if(currentToken == Terminal.RIGHTPAR){
+                printTerminal(Terminal.RIGHTPAR);
                 lex();
             }
             else{
@@ -293,96 +356,159 @@ public class SyntaxAnalyzer {
                     Terminal.LEFTPAR));
         }
 
+        depthLevel--;
     }
+
+
+
     //<Expr> --> <LetExpression> | <CondExpression> | <IfExpression> | <BeginExpression> | <FunCall>
     public static void Expr() throws IOException {
+        depthLevel++;
+
         if (currentToken == Terminal.LET) {
+            printNonterminal("<LetExpression>");
             LetExpression();
         } else if (currentToken == Terminal.COND) {
+            printNonterminal("<CondExpression>");
             CondExpression();
         } else if (currentToken == Terminal.IF) {
+            printNonterminal("<IfExpression>");
             IfExpression();
         } else if (currentToken == Terminal.BEGIN) {
+            printNonterminal("<BeginExpression>");
             BeginExpression();
         } else if (currentToken == Terminal.IDENTIFIER) {
+            printNonterminal("<FuncCall>");
             FunCall();
         }
         else{
             error(Arrays.asList(Terminal.LET, Terminal.COND, Terminal.IF, Terminal.BEGIN, Terminal.IDENTIFIER));
         }
+
+
+        depthLevel--;
     }
 
     //<VarDef> --> Epsilon | <VarDefs>
     public static void VarDef() throws IOException {
-        if(currentToken == Terminal.LEFTPAR)
+        depthLevel++;
+
+        if(currentToken == Terminal.LEFTPAR) {
+            printNonterminal("<VarDefs>");
             VarDefs();
+        }
+        else{
+            printNonterminal("__");
+        }
+
+        depthLevel--;
     }
 
 
     //<CondBranch> --> Epsilon | ( <Expression> <Statements> )
     public static void CondBranch() throws IOException {
+        depthLevel++;
 
         if(currentToken == Terminal.LEFTPAR){
+            printTerminal(currentToken);
             lex();
-            Expressions();
+            printNonterminal("<Expression>");
+            Expression();
+            printNonterminal("<Statements>");
             Statements();
 
-            if(currentToken == Terminal.RIGHTPAR)
+            if(currentToken == Terminal.RIGHTPAR) {
+                printTerminal(currentToken);
                 lex();
+            }
             else
                 error(Terminal.RIGHTPAR); //Give an error like: ')' is expected.
         }
 
+        depthLevel--;
     }
 
 
     //<EndExpression> --> Epsilon | <Expression>
     public static void EndExpression() throws IOException {
+        depthLevel++;
 
         if(currentToken == Terminal.IDENTIFIER || currentToken == Terminal.NUMBER || currentToken == Terminal.CHAR ||
                 currentToken == Terminal.BOOLEAN || currentToken == Terminal.STRING || currentToken == Terminal.LEFTPAR) {
+            printNonterminal("<Expression>");
             Expression();
         }
+        else{
+            printNonterminal("__");
+        }
+
+        depthLevel--;
     }
 
-    //<FunCall> --> IDENTIFIER <Expression>
+
+    //<FunCall> --> IDENTIFIER <Expressions>
     public static void FunCall() throws IOException {
+        depthLevel++;
 
         if(currentToken == Terminal.IDENTIFIER) {
+            printTerminal(currentToken);
             lex();
+            printNonterminal("<Expressions>");
             Expressions();
         } else {
             error(Terminal.IDENTIFIER);
         }
+
+        depthLevel--;
     }
+
 
     //<LetExpression> --> LET <LetExpr>
     public static void LetExpression() throws IOException {
+        depthLevel++;
 
         if(currentToken == Terminal.LET) {
+            printTerminal(currentToken);
             lex();
+            printNonterminal("<LetExpr>");
             LetExpr();
         } else {
             error(Terminal.LET);
         }
+
+        depthLevel--;
     }
 
     //<LetExpression> --> ( <VarDefs> ) <Statements> | IDENTIFIER ( <VarDefs> ) <Statements>
     public static void LetExpr() throws IOException {
+        depthLevel++;
+
         if (currentToken == Terminal.LEFTPAR) {
+            printTerminal(currentToken);
             lex();
+            printNonterminal("<VarDefs>");
             VarDefs();
             if (currentToken == Terminal.RIGHTPAR) {
+                printTerminal(currentToken);
                 lex();
+                printNonterminal("<Statements>");
+                Statements();
             } else {
                 error(Terminal.RIGHTPAR); //Give an error like: ')' is expected.
             }
         } else if (currentToken == Terminal.IDENTIFIER) {
+            printTerminal(currentToken);
+            lex();
             if (currentToken == Terminal.LEFTPAR) {
+                printTerminal(currentToken);
                 lex();
+                printNonterminal("<VarDefs>");
                 VarDefs();
                 if (currentToken == Terminal.RIGHTPAR) {
+                    printTerminal(currentToken);
                     lex();
+                    printNonterminal("<Statements>");
+                    Statements();
                 } else {
                     error(Terminal.RIGHTPAR); //Give an error like: ')' is expected.
                 }
@@ -392,17 +518,27 @@ public class SyntaxAnalyzer {
         } else {
             error(Arrays.asList(Terminal.LEFTPAR, Terminal.IDENTIFIER));
         }
+
+        depthLevel--;
     }
+
 
     //<VarDefs> -->( IDENTIFIER <Expression> ) <VarDef>
     public static void VarDefs() throws IOException {
+        depthLevel++;
+
         if(currentToken == Terminal.LEFTPAR) {
+            printTerminal(currentToken);
             lex();
             if(currentToken == Terminal.IDENTIFIER) {
+                printTerminal(currentToken);
                 lex();
-                Expressions();
+                printNonterminal("<Expression>");
+                Expression();
                 if(currentToken == Terminal.RIGHTPAR) {
+                    printTerminal(currentToken);
                     lex();
+                    printNonterminal("<VarDef>");
                     VarDef();
                 } else {
                     error(Terminal.RIGHTPAR);
@@ -413,26 +549,41 @@ public class SyntaxAnalyzer {
         } else {
             error(Terminal.LEFTPAR);
         }
+
+        depthLevel--;
     }
 
     //<CondExpression> --> COND <CondBranches>
     public static void CondExpression() throws IOException {
+        depthLevel++;
+
         if(currentToken == Terminal.COND) {
+            printTerminal(currentToken);
             lex();
+            printNonterminal("<CondBranches>");
             CondBranches();
         } else {
             error(Terminal.COND);
         }
+
+        depthLevel--;
     }
 
     //<CondBranches> --> ( <Expression> <Statements> ) <CondBranches>
     public static void CondBranches() throws IOException {
+        depthLevel++;
+
         if(currentToken == Terminal.LEFTPAR) {
+            printTerminal(currentToken);
             lex();
-            Expressions();
+            printNonterminal("<Expression>");
+            Expression();
+            printNonterminal("<Statements>");
             Statements();
             if(currentToken == Terminal.RIGHTPAR) {
+                printTerminal(currentToken);
                 lex();
+                printNonterminal("<CondBranches>");
                 CondBranches();
             } else {
                 error(Terminal.RIGHTPAR);
@@ -440,28 +591,44 @@ public class SyntaxAnalyzer {
         } else {
             error(Terminal.LEFTPAR);
         }
+
+        depthLevel--;
     }
 
     //<IfExpression> --> IF <Expression> <Expression> <EndExpression>
     public static void IfExpression() throws IOException {
+        depthLevel++;
+
         if(currentToken == Terminal.IF) {
+            printTerminal(currentToken);
             lex();
-            Expressions();
-            Expressions();
+            printNonterminal("<Expression>");
+            Expression();
+            printNonterminal("<Expression>");
+            Expression();
+            printNonterminal("<EndExpressions>");
             EndExpression();
         } else {
             error(Terminal.IF);
         }
+
+        depthLevel--;
     }
 
     //<BeginExpression> --> BEGIN <Statements>
     public static void BeginExpression() throws IOException {
+        depthLevel++;
+
         if(currentToken == Terminal.BEGIN) {
+            printTerminal(currentToken);
             lex();
+            printNonterminal("<Statements>");
             Statements();
         } else {
             error(Terminal.BEGIN);
         }
+
+        depthLevel--;
     }
 
 
@@ -474,12 +641,12 @@ public class SyntaxAnalyzer {
     }
 
 
-    public static void printTerminal(Terminal terminal, String lexeme){
+    public static void printTerminal(Terminal terminal){
 
         for(int i = 0; i < depthLevel; i++) //Put appropriate number of tabs for current depthLevel
             System.out.print("\t");
 
-        System.out.println(terminal.toString() + "( " + lexeme + " )");
+        System.out.println(terminal.toString() + " (" + currentLexeme + ")");
     }
 
 }

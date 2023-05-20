@@ -503,11 +503,11 @@ public class LexicalAnalyzer {
 
 
         if(currentChar == '\n' || currentChar == '\r') {
-            System.out.println(token + " " + (line - 1) + ":" + tokenStartingColumn);
+            //System.out.println(token + " " + (line - 1) + ":" + tokenStartingColumn);
             file.write(token + " " + (line - 1) + ":" + tokenStartingColumn +"\n");
         }
         else {
-            System.out.println(token + " " + line + ":" + tokenStartingColumn);
+            //System.out.println(token + " " + line + ":" + tokenStartingColumn);
             file.write(token + " " + line + ":" + tokenStartingColumn + "\n");
         }
 
