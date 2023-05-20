@@ -8,10 +8,7 @@
  */
 
 
-import java.io.BufferedReader;
-import java.io.FileNotFoundException;
-import java.io.FileReader;
-import java.io.IOException;
+import java.io.*;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -35,37 +32,40 @@ public class SyntaxAnalyzer {
     }
 
     //GLOBAL VARIABLES
-    private static String INPUT_FILE_PATH = "output.txt"; //Our input file is the output of LexicalAnalyzer
+    private static String TOKEN_FILE_PATH = "tokens.txt"; //Our input file is the output of LexicalAnalyzer
     private static String LEXEME_FILE_PATH = "lexemes.txt"; //Our lexemes file is the output of LexicalAnalyzer
-    private static final String OUTPUT_FILE_PATH = "parse_tree.txt"; //Our ouput file will be the parse tree of the code
+    private static final String OUTPUT_FILE_PATH = "parse_tree.txt"; //Our output file will be the parse tree of the code
     private static FileReader F;
     private static FileReader F2;
+    private static FileWriter file;
     private static BufferedReader bufferedReader;
     private static BufferedReader bufferedReader2;
-    private static Terminal currentToken;
+    private static Terminal currentToken; //It keeps the current token
     private static String currentLexeme; //It keeps the current lexeme
-    private static String location;
-    private static int depthLevel = 0;
+    private static String location;  //It keeps the location of the current lexeme
+    private static int depthLevel = 0; //It keeps the depth level of the tree to print it correctly
 
 
+    //OPENING FILES
+    static {
+        try {  //try-catch block for catching file is not found error
+            file = new FileWriter("output.txt");
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
 
-
-
-
-    public static void main(String args[]) throws IOException {
-
-        LexicalAnalyzer.main(null); //We call the LexicalAnaylzer that we have written in previous project
-
-
-        //Opening Files
+    static{
         try {
-            F = new FileReader(INPUT_FILE_PATH);  //reading file by using FileReader;
+            F = new FileReader(TOKEN_FILE_PATH);  //reading file by using FileReader;
         }
         catch (FileNotFoundException e){
             System.out.println("Token file couldn't opened!");
             System.exit(0);
         }
+    }
 
+    static{
         try {
             F2 = new FileReader(LEXEME_FILE_PATH);  //reading file by using FileReader;
         }
@@ -73,6 +73,16 @@ public class SyntaxAnalyzer {
             System.out.println("Lexeme file couldn't opened!");
             System.exit(0);
         }
+    }
+
+
+
+    public static void main(String args[]) throws IOException {
+
+        /* We call the LexicalAnalyzer that we have written in previous project
+         * It will return the tokens and lexemes as output files.
+         */
+        LexicalAnalyzer.main(null);
 
 
         bufferedReader = new BufferedReader(F);
@@ -83,6 +93,7 @@ public class SyntaxAnalyzer {
         printNonterminal("<Program>"); //Printing the beginning of the tree
         Program(); //We start analyzing the syntax
 
+        file.close(); //Closing the output file.
     }
 
 
@@ -90,23 +101,26 @@ public class SyntaxAnalyzer {
 
     //This function reads the next token in the output file of LexicalAnalyzer
     public static void lex() throws IOException {
-        String line = bufferedReader.readLine();
-        currentLexeme = bufferedReader2.readLine();
+
+        String line = bufferedReader.readLine(); //Read the token
+        currentLexeme = bufferedReader2.readLine(); //Read the lexeme
 
         try {
             currentToken = Terminal.valueOf(line.substring(0, line.indexOf(' ')));
             location = line.substring(line.indexOf(' ') + 1);
         }
-        catch (Exception e){ //If the token is different that we defined above, give error.
-            if(line != null)
-                System.out.println("The token: " + line.substring(0, line.indexOf(' ')) + " is not known by this SyntaxAnalyzer!" );
+        catch (Exception e) { //If the token is not in included in the grammar, give error.
+            if (line != null){
+                System.out.println("The token: " + line.substring(0, line.indexOf(' ')) + " is not known by this SyntaxAnalyzer!");
+                System.exit(0);
+             }
         }
 
     }
 
 
 
-    //Give the error. You should give the currentToken as an input.
+    //This function gives 1 error. You should give the currentToken as an input.
     public static void error(Terminal token){
 
         if(token == Terminal.RIGHTPAR)
@@ -120,6 +134,7 @@ public class SyntaxAnalyzer {
         System.exit(0);
     }
 
+    //This function gives many errors like: '(' or 'DEFINE' is expected
     public static void error(List<Terminal> tokens){
 
         System.out.print("SYNTAX ERROR [" + location + "]: ");
@@ -134,7 +149,7 @@ public class SyntaxAnalyzer {
                 System.out.print("'" + tokens.get(i) + "'");
 
             if(i != tokens.size() - 1)
-                System.out.print(", ");
+                System.out.print("or ");
         }
 
         System.out.println(" is expected");
@@ -154,7 +169,7 @@ public class SyntaxAnalyzer {
             Program();
         }
         else{ //Else, do nothing. That means epsilon.
-            printNonterminal("__"); //Print underscore to show epsilon
+            printNonterminal("_"); //Print underscore to show epsilon
         }
 
         depthLevel--;
@@ -216,6 +231,7 @@ public class SyntaxAnalyzer {
         depthLevel--;
     }
 
+
     //<Definition> --> DEFINE <DefinitionRight>
     public static void Definition() throws IOException {
         depthLevel++;
@@ -233,6 +249,7 @@ public class SyntaxAnalyzer {
 
           depthLevel--;
     }
+
 
     //<DefinitionRight> --> IDENTIFIER <Expression> | ( IDENTIFIER <ArgList> ) <Statements>
     public static void DefinitionRight() throws IOException {
@@ -272,6 +289,7 @@ public class SyntaxAnalyzer {
           depthLevel--;
     }
 
+
     //<ArgList> --> Epsilon | IDENTIFIER <ArgList>
     public static void ArgList() throws IOException {
         depthLevel++;
@@ -288,6 +306,7 @@ public class SyntaxAnalyzer {
 
         depthLevel--;
     }
+
 
     //<Statements> --> <Expression> | <Definition> <Statements>
     public static void Statements() throws IOException {
@@ -360,7 +379,6 @@ public class SyntaxAnalyzer {
     }
 
 
-
     //<Expr> --> <LetExpression> | <CondExpression> | <IfExpression> | <BeginExpression> | <FunCall>
     public static void Expr() throws IOException {
         depthLevel++;
@@ -388,6 +406,7 @@ public class SyntaxAnalyzer {
 
         depthLevel--;
     }
+
 
     //<VarDef> --> Epsilon | <VarDefs>
     public static void VarDef() throws IOException {
@@ -553,6 +572,7 @@ public class SyntaxAnalyzer {
         depthLevel--;
     }
 
+
     //<CondExpression> --> COND <CondBranches>
     public static void CondExpression() throws IOException {
         depthLevel++;
@@ -568,6 +588,7 @@ public class SyntaxAnalyzer {
 
         depthLevel--;
     }
+
 
     //<CondBranches> --> ( <Expression> <Statements> ) <CondBranches>
     public static void CondBranches() throws IOException {
@@ -595,6 +616,7 @@ public class SyntaxAnalyzer {
         depthLevel--;
     }
 
+
     //<IfExpression> --> IF <Expression> <Expression> <EndExpression>
     public static void IfExpression() throws IOException {
         depthLevel++;
@@ -615,6 +637,7 @@ public class SyntaxAnalyzer {
         depthLevel--;
     }
 
+
     //<BeginExpression> --> BEGIN <Statements>
     public static void BeginExpression() throws IOException {
         depthLevel++;
@@ -632,21 +655,27 @@ public class SyntaxAnalyzer {
     }
 
 
-    public static void printNonterminal(String nonterminal){
+    public static void printNonterminal(String nonterminal) throws IOException {
 
-        for(int i = 0; i < depthLevel; i++) //Put appropriate number of tabs for current depthLevel
-            System.out.print("\t");
+        for(int i = 0; i < depthLevel; i++) { //Put appropriate number of tabs for current depthLevel
+            System.out.print(" ");
+             file.write(" ");
+         }
 
         System.out.println(nonterminal);
+        file.write(nonterminal + "\n");
     }
 
 
-    public static void printTerminal(Terminal terminal){
+    public static void printTerminal(Terminal terminal) throws IOException {
 
-        for(int i = 0; i < depthLevel; i++) //Put appropriate number of tabs for current depthLevel
-            System.out.print("\t");
+        for(int i = 0; i < depthLevel; i++) { //Put appropriate number of tabs for current depthLevel
+            System.out.print(" ");
+            file.write(" ");
+        }
 
         System.out.println(terminal.toString() + " (" + currentLexeme + ")");
+        file.write(terminal.toString() + " (" + currentLexeme + ")\n");
     }
 
 }

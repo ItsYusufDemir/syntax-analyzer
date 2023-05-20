@@ -30,7 +30,7 @@ public class LexicalAnalyzer {
 
     static {
         try {  //try-catch block for catching file is not found error
-            file = new FileWriter("output.txt");
+            file = new FileWriter("tokens.txt");
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
@@ -52,7 +52,7 @@ public class LexicalAnalyzer {
 
         //TAKING THE FILE NAME
         Scanner input = new Scanner(System.in);
-        System.out.println("Enter the file name (ex. input1.txt) : ");
+        System.out.println("Enter the file name (ex. Correct_Input.txt) : ");
         String fileName = input.next(); //Taking the file name
 
         try {
