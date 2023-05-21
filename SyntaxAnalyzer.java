@@ -46,35 +46,6 @@ public class SyntaxAnalyzer {
     private static int depthLevel = 0; //It keeps the depth level of the tree to print it correctly
 
 
-    //OPENING FILES
-    static {
-        try {  //try-catch block for catching file is not found error
-            file = new FileWriter("output.txt");
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
-    }
-
-    static{
-        try {
-            F = new FileReader(TOKEN_FILE_PATH);  //reading file by using FileReader;
-        }
-        catch (FileNotFoundException e){
-            System.out.println("Token file couldn't opened!");
-            System.exit(0);
-        }
-    }
-
-    static{
-        try {
-            F2 = new FileReader(LEXEME_FILE_PATH);  //reading file by using FileReader;
-        }
-        catch (FileNotFoundException e){
-            System.out.println("Lexeme file couldn't opened!");
-            System.exit(0);
-        }
-    }
-
 
 
     public static void main(String args[]) throws IOException {
@@ -83,6 +54,32 @@ public class SyntaxAnalyzer {
          * It will return the tokens and lexemes as output files.
          */
         LexicalAnalyzer.main(null);
+
+
+        //OPENING FILES
+        try {  //try-catch block for catching file is not found error
+            file = new FileWriter("output.txt");
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+
+
+
+        try {
+            F = new FileReader(TOKEN_FILE_PATH);  //reading file by using FileReader;
+        }
+        catch (FileNotFoundException e){
+            System.out.println("Token file couldn't opened!");
+            System.exit(0);
+        }
+
+        try {
+            F2 = new FileReader(LEXEME_FILE_PATH);  //reading file by using FileReader;
+        }
+        catch (FileNotFoundException e){
+            System.out.println("Lexeme file couldn't opened!");
+            System.exit(0);
+        }
 
 
         bufferedReader = new BufferedReader(F);
@@ -95,7 +92,6 @@ public class SyntaxAnalyzer {
 
         file.close(); //Closing the output file.
     }
-
 
 
 
@@ -119,7 +115,6 @@ public class SyntaxAnalyzer {
     }
 
 
-
     //This function gives 1 error. You should give the currentToken as an input.
     public static void error(Terminal token){
 
@@ -133,6 +128,7 @@ public class SyntaxAnalyzer {
 
         System.exit(0);
     }
+
 
     //This function gives many errors like: '(' or 'DEFINE' is expected
     public static void error(List<Terminal> tokens){
@@ -149,13 +145,12 @@ public class SyntaxAnalyzer {
                 System.out.print("'" + tokens.get(i) + "'");
 
             if(i != tokens.size() - 1)
-                System.out.print("or ");
+                System.out.print(" or ");
         }
 
         System.out.println(" is expected");
         System.exit(0);
     }
-
 
 
     //<Program> --> Epsilon | <TopLevelForm> <Program>
@@ -174,8 +169,6 @@ public class SyntaxAnalyzer {
 
         depthLevel--;
     }
-
-
 
 
     //<TopLevelForm> --> ( <SecondLevelForm> )
@@ -342,7 +335,7 @@ public class SyntaxAnalyzer {
             Expressions();
         }
         else{
-            printNonterminal("__");
+            printNonterminal("_");
         }
 
         depthLevel--;
@@ -417,7 +410,7 @@ public class SyntaxAnalyzer {
             VarDefs();
         }
         else{
-            printNonterminal("__");
+            printNonterminal("_");
         }
 
         depthLevel--;
@@ -458,7 +451,7 @@ public class SyntaxAnalyzer {
             Expression();
         }
         else{
-            printNonterminal("__");
+            printNonterminal("_");
         }
 
         depthLevel--;
@@ -497,6 +490,7 @@ public class SyntaxAnalyzer {
 
         depthLevel--;
     }
+
 
     //<LetExpression> --> ( <VarDefs> ) <Statements> | IDENTIFIER ( <VarDefs> ) <Statements>
     public static void LetExpr() throws IOException {
@@ -657,7 +651,7 @@ public class SyntaxAnalyzer {
 
     public static void printNonterminal(String nonterminal) throws IOException {
 
-        for(int i = 0; i < depthLevel; i++) { //Put appropriate number of tabs for current depthLevel
+        for(int i = 0; i < depthLevel; i++) { //Put appropriate number of space characters for current depthLevel
             System.out.print(" ");
              file.write(" ");
          }
@@ -669,7 +663,7 @@ public class SyntaxAnalyzer {
 
     public static void printTerminal(Terminal terminal) throws IOException {
 
-        for(int i = 0; i < depthLevel; i++) { //Put appropriate number of tabs for current depthLevel
+        for(int i = 0; i < depthLevel; i++) { //Put appropriate number of space characters for current depthLevel
             System.out.print(" ");
             file.write(" ");
         }

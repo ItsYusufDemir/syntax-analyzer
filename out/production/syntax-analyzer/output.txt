@@ -42,7 +42,7 @@
                 NUMBER (0)
                RIGHTPAR ())
                <VarDef>
-                __
+                _
           RIGHTPAR ())
           <Statements>
            <Expression>
@@ -62,7 +62,7 @@
                    <Expression>
                     IDENTIFIER (n)
                    <Expressions>
-                    __
+                    _
                RIGHTPAR ())
               <Expression>
                IDENTIFIER (cur)
@@ -88,7 +88,7 @@
                          <Expression>
                           IDENTIFIER (cur)
                          <Expressions>
-                          __
+                          _
                      RIGHTPAR ())
                     <Expressions>
                      <Expression>
@@ -103,9 +103,13 @@
                           <Expression>
                            NUMBER (1)
                           <Expressions>
-                           __
+                           _
                       RIGHTPAR ())
                      <Expressions>
-                      __
+                      _
                 RIGHTPAR ())
-            RIGHTPAR ()
+            RIGHTPAR ())
+       RIGHTPAR ())
+  RIGHTPAR ())
+ <Program>
+  _
